@@ -5,6 +5,7 @@ from src.rest_api.routes import enriched_post, enriched_posts
 app = FastAPI()
 
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
