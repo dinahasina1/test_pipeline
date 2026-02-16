@@ -1,14 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class Post(BaseModel):
-    """
-    Represents a raw post fetched from the external JSON API.
-    Handles field mapping for consistent internal usage.
-    """
+    model_config = ConfigDict(populate_by_name=True)
+
     id: int
     user_id: int = Field(alias="userId")
     title: str
     body: str
-
-    class Config:
-        populate_by_name = True
