@@ -11,3 +11,5 @@ class Config:
     API_HOST = "0.0.0.0"
     API_PORT = 8000
     API_BASE_URL = f"http://{API_HOST}:{API_PORT}"
+    SAVE_POSTS_URL = f"http://{API_HOST}:{API_PORT}/save-posts"
+    EXTERNAL_WEBHOOK_URL = f"http://{API_HOST}:{API_PORT}/save-posts"

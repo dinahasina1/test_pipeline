@@ -28,9 +28,6 @@ def run_pipeline() -> None:
         repo = SQLiteRepository(Config.DB_PATH)
         webhook = WebhookClient(Config.EXTERNAL_WEBHOOK_URL)
         
-        # Buffer pour isoler l'échantillon à envoyer vers l'API externe
-        sample_to_notify = []
-
         # Extraction des données via un générateur (Non-bloquant)
         posts_generator = fetch_posts_stream(Config.POSTS_API_URL, Config.CHUNK_SIZE)
         
@@ -44,16 +41,10 @@ def run_pipeline() -> None:
             
             # Persistance immédiate pour libérer la mémoire
             repo.save_enriched_posts(chunk)
-            
-            # Collecte des 10 premiers enregistrements pour la notification
-            if len(sample_to_notify) < 10:
-                needed = 10 - len(sample_to_notify)
-                sample_to_notify.extend(chunk[:needed])
 
-        # Action finale : Notification des premiers résultats
-        if sample_to_notify:
-            logger.info("Transmission de l'échantillon au webhook externe.")
-            webhook.send_sample(sample_to_notify)
+        # Action finale : envoi du premier chunk vers EXTERNAL_WEBHOOK_URL (save-posts)
+        logger.info("Transmission du premier chunk au webhook externe.")
+        webhook.send_first_chunk_to_external(repo)
 
         logger.info("Pipeline exécuté avec succès.")
 
