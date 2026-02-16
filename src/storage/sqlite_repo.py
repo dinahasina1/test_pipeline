@@ -1,5 +1,6 @@
 import sqlite3
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
 from src.core.models import EnrichedPost
 
@@ -37,3 +38,32 @@ class SQLiteRepository:
         with sqlite3.connect(self.db_path) as conn:
             conn.executemany(query, data)
             conn.commit()
+
+    def get_all_enriched_posts(self) -> List[EnrichedPost]:
+        query = "SELECT id, user_id, email, title, body, title_length, ingested_at FROM posts_enriched"
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(query).fetchall()
+        return [_row_to_enriched_post(row) for row in rows]
+
+    def get_enriched_post_by_id(self, post_id: int) -> Optional[EnrichedPost]:
+        query = "SELECT id, user_id, email, title, body, title_length, ingested_at FROM posts_enriched WHERE id = ?"
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(query, (post_id,)).fetchone()
+        return _row_to_enriched_post(row) if row else None
+
+
+def _row_to_enriched_post(row: sqlite3.Row) -> EnrichedPost:
+    ingested = row["ingested_at"]
+    if isinstance(ingested, str):
+        ingested = datetime.fromisoformat(ingested.replace("Z", "+00:00"))
+    return EnrichedPost(
+        id=row["id"],
+        user_id=row["user_id"],
+        email=row["email"],
+        title=row["title"],
+        body=row["body"],
+        title_length=row["title_length"],
+        ingested_at=ingested,
+    )

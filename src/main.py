@@ -4,6 +4,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import logging
+import threading
+import uvicorn
 from src.shared.config import Config
 from src.shared.logger import setup_logger
 from src.providers.csv_reader import load_users_map
@@ -59,5 +61,28 @@ def run_pipeline() -> None:
         logger.critical(f"Échec du pipeline : {str(e)}")
         sys.exit(1)
 
+
+def run_api() -> None:
+    uvicorn.run(
+        "src.rest_api.app:app",
+        host=Config.API_HOST,
+        port=Config.API_PORT,
+        reload=False,
+    )
+
+
+def main() -> None:
+    mode = sys.argv[1] if len(sys.argv) > 1 else "none"
+    if mode == "api":
+        run_api()
+    elif mode == "pipeline":
+        run_pipeline()
+    else:
+        api_thread = threading.Thread(target=run_api, daemon=False)
+        api_thread.start()
+        run_pipeline()
+        api_thread.join()
+
+
 if __name__ == "__main__":
-    run_pipeline()
+    main()
