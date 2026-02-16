@@ -78,9 +78,9 @@ def main() -> None:
     elif mode == "pipeline":
         run_pipeline()
     else:
-        api_thread = threading.Thread(target=run_api, daemon=False)
+        api_thread = threading.Thread(target=run_pipeline, daemon=True)
         api_thread.start()
-        run_pipeline()
+        run_api()
         api_thread.join()
 
 
