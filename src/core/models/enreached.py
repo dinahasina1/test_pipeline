@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from pydantic import BaseModel, EmailStr, Field
 
 from src.core.models.post import Post
@@ -32,4 +33,30 @@ class EnrichedPost(BaseModel):
             title=post.title,
             body=post.body,
             title_length=len(post.title)
+        )
+
+    def to_db_row(self) -> tuple:
+        return (
+            self.id,
+            self.user_id,
+            self.email,
+            self.title,
+            self.body,
+            self.title_length,
+            self.ingested_at,
+        )
+
+    @classmethod
+    def from_db_row(cls, row: Any) -> "EnrichedPost":
+        ingested = row["ingested_at"]
+        if isinstance(ingested, str):
+            ingested = datetime.fromisoformat(ingested.replace("Z", "+00:00"))
+        return cls(
+            id=row["id"],
+            user_id=row["user_id"],
+            email=row["email"],
+            title=row["title"],
+            body=row["body"],
+            title_length=row["title_length"],
+            ingested_at=ingested,
         )
