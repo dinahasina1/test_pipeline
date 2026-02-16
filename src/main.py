@@ -67,7 +67,7 @@ def run_api() -> None:
         "src.rest_api.app:app",
         host=Config.API_HOST,
         port=Config.API_PORT,
-        reload=False,
+        reload=True,
     )
 
 

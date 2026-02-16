@@ -48,3 +48,15 @@ class SQLiteRepository:
             conn.row_factory = sqlite3.Row
             row = conn.execute(query, (post_id,)).fetchone()
         return EnrichedPost.from_db_row(row) if row else None
+
+    def get_enriched_posts_by_range(self, start_id: int, end_id: int) -> List[EnrichedPost]:
+        query = "SELECT id, user_id, email, title, body, title_length, ingested_at FROM posts_enriched WHERE id BETWEEN ? AND ? ORDER BY id"
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(query, (start_id, end_id)).fetchall()
+        return [EnrichedPost.from_db_row(row) for row in rows]
+
+    def get_max_id(self) -> int:
+        query = "SELECT COALESCE(MAX(id), 0) FROM posts_enriched"
+        with sqlite3.connect(self.db_path) as conn:
+            return conn.execute(query).fetchone()[0]
